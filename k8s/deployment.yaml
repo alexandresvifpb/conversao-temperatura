@@ -38,4 +38,4 @@ spec:
     port: 80            # Para comunicação interna dentro do cluster, por exemplo uma aplicação dentro do cluster que faz uma solicitação HTTP para este serviço (by @GabrielMChaves#7940)
     targetPort: 8080    # Usar a mesma porta "containerPort:" da App
     nodePort: 30000     # porta do cluster "8080:30000@loadbalancer"
-  type: NodePort
+  type: LoadBalancer
