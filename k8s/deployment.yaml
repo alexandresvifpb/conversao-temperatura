@@ -1,4 +1,8 @@
 # Deployment da app web conversao temperatura
+# Criar um cluster com comando
+#   k3d cluster create meucluster --servers 3 --agents 3 -p "8080:30000@loadbalancer"
+# Eu entendi que é algo +/- assim: no Dockerfile, é exposta a porta de que a aplicação que vai rodar no conteiner precisa (EXPOSE <porta>). No momento de criar o cluster, essa mesma porta é mapeada para uma porta específica do cluster (-p "<porta aplicação/conteiner>:<porta cluster>@loadbalancer") (by @André Rodrigues#2280)
+# -p "<porta aplicação/conteiner>:<porta cluster 'nodePort:'>@loadbalancer")
 
 apiVersion: apps/v1
 kind: Deployment
@@ -18,7 +22,7 @@ spec:
         - name: web
           image: alexandreufcg/conversao-temperatura-fork:v1
           ports:
-            - containerPort: 8080
+            - containerPort: 8080   # Usar a mesma porta EXPOSE do Dockerfile e do Cluster
  
 ---
  
@@ -31,64 +35,7 @@ spec:
     app: web
   ports:
   - protocol: TCP
-    port: 80
-    targetPort: 8080
-    nodePort: 30000
+    port: 80            # Para comunicação interna dentro do cluster, por exemplo uma aplicação dentro do cluster que faz uma solicitação HTTP para este serviço (by @GabrielMChaves#7940)
+    targetPort: 8080    # Usar a mesma porta "containerPort:" da App
+    nodePort: 30000     # porta do cluster "8080:30000@loadbalancer"
   type: NodePort
-
-# ---
-
-# # Service da App
-
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: web
-# spec:
-#   selector:
-#     app: web
-#   ports:
-#   - protocol: TCP
-#     port: 80
-#     targetPort: 8080
-#     nodePort: 30000
-#   type: NodePort
-
-
-# ==========================================
-
-
-# apiVersion: apps/v1
-# kind: Deployment
-# metadata:
-#   name: meudeployment
-# spec:
-#   replicas: 4
-#   selector:
-#     matchLabels:
-#       app: web
-#   template:
-#     metadata:
-#       labels:
-#         app: web
-#     spec:
-#       containers:
-#         - name: web
-#           image: kubedevio/web-page:blue
-#           ports:
-#             - containerPort: 80
- 
-# ---
- 
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: web
-# spec:
-#   selector:
-#     app: web
-#   ports:
-#   - protocol: TCP
-#     port: 80
-#     nodePort: 30000
-#   type: NodePort
